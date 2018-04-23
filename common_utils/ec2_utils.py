@@ -3,10 +3,11 @@ from __future__ import print_function
 
 import boto3
 import time
+import requests
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 
-ec2client = boto3.client('ec2',region_name='us-east-1')
+ec2client = boto3.client('ec2')#,region_name='us-east-1') # Set AWS_DEFAULT_REGION in env
 
 TAG_NAME  = 'PROJECT'
 TAG_VALUE = 'AWS-BATCH'

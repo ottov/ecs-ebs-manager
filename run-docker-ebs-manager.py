@@ -4,13 +4,12 @@ from __future__ import print_function
 import os
 import sys
 import time
-
 import docker
-import requests
+
 from subprocess import check_output
 from string import ascii_lowercase
 
-from ec2_utils import *
+from common_utils.ec2_utils import *
 
 dClient = docker.from_env()
 
@@ -127,7 +126,7 @@ def main():
         try:
           time.sleep(10)
         except KeyboardInterrupt:
-          pass
+          sys.exit(0)
         except:
           print("Unexpected error:", sys.exc_info()[0])
           raise
