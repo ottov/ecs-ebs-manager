@@ -99,6 +99,7 @@ def main():
                sz = str.rstrip(cmd.output) # expecting bytes
                volSz = int(sz) / 1024**3   # converted to GB for EBS sizing
                volSz += 1                  # +1 !
+               volSz = int(5 * round(float(volSz+3)/5)) # generous round up to nearest 5
 
                # check if /scratch already mounted
                cMounts = c.exec_run('cat /proc/mounts').output
