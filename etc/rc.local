@@ -4,7 +4,6 @@
 #sudo yum install -y git systat screen
 
 ZONE=$(curl -sS http://169.254.169.254/latest/meta-data/placement/availability-zone)
-IID=$(curl  -sS http://169.254.169.254/latest/meta-data/instance-id)
 export AWS_DEFAULT_REGION=$(echo $ZONE|sed 's/.$//')
 
 DIR=/home/ec2-user/ecs-ebs-manager/
