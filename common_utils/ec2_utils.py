@@ -7,10 +7,8 @@ import requests
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 
-ec2client = boto3.client('ec2')#,region_name='us-east-1') # Set AWS_DEFAULT_REGION in env
+ec2client = boto3.client('ec2') #,region_name='us-east-1') # Set AWS_DEFAULT_REGION in env
 
-TAG_NAME  = 'PROJECT'
-TAG_VALUE = 'AWS-BATCH'
 VOLUME_TYPE = 'gp2'
 
 def getEC2_Zone():
@@ -58,17 +56,16 @@ def createEBS(sz=42):
             VolumeType = VOLUME_TYPE,
             Size = sz) # In GB, max 16384 for gp2
 
-    ec2client.create_tags(
-        Resources=[
-            res['VolumeId'],
-        ],
-        Tags=[
-            {
-                'Key': TAG_NAME,
-                'Value': TAG_VALUE
-            },
-        ]
-    )
+    # Inherit host's tags
+    tags = getInstanceTags()
+
+    if len(tags) > 0:
+        ec2client.create_tags(
+            Resources=[
+                res['VolumeId'],
+            ],
+            Tags=tags
+        )
 
     return res['VolumeId']
 
@@ -84,6 +81,27 @@ def getEBS_volId(devName):
        return res['Volumes'][0]['VolumeId']
 
     return None
+
+def getInstanceTags():
+    iid = getEC2_InstanceId()
+    res = ec2client.describe_tags(
+             Filters=[
+                   {'Name':'resource-id',
+                    'Values':[iid]
+                    }]
+          )
+
+    savedTags = []
+    if len(res['Tags']) > 1:
+        for i in res['Tags']:
+           if i['Key'] in ['Name', 'aws:ec2spot:fleet-request-id']:
+              continue
+           savedTags.append({'Key':i['Key'],'Value':i['Value']})
+        return savedTags
+    else:
+        return []
+
+
 
 def attachEBS(devName, vol):
     iid = getEC2_InstanceId()
