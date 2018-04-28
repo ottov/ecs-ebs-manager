@@ -31,7 +31,7 @@ def generateDeviceName():
 
 def buildInventory():
     """
-    Modifies global container dict to track any new containers. 
+    Modifies global container dict to track any new containers.
     Helps detect finished tasks
     """
     for container in dClient.containers.list():
@@ -41,9 +41,10 @@ def buildInventory():
             containerMap[container.id] = None
             cOut = container.exec_run(cmd=['sh','-c', 'df -h /scratch | tail -1 | cut -d" " -f1']).output
             devName = str.rstrip(cOut)
-            containerMap[container.id] = { 'devname': devName,
-                                           'vol'    : getEBS_volId(devName)
-                                         }
+            if not 'docker' in devName:
+                containerMap[container.id] = { 'devname': devName,
+                                               'vol'    : getEBS_volId(devName)
+                                              }
 
 
 def dropFromInventory(cId):
@@ -79,7 +80,7 @@ def mountEBS_on_container(devName, cId):
 
 def main():
     """
-    Loops, waiting for containers to appear. 
+    Loops, waiting for containers to appear.
     Once they are running, checks to see if that have /TOTAL_SIZE request.
     Makes an EBS drive from that request, and mounts it on corresponding container.
     """
