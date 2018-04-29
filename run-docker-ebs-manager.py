@@ -53,10 +53,11 @@ def dropFromInventory(cId):
     """
     if cId in containerMap:
       print ('Removing container %s from inventory' % (cId))
-      devName = containerMap[cId]['devname']
-      vol     = containerMap[cId]['vol']
-      detachEBS(devName, vol)
-      deleteEBS(vol)
+      if containerMap[cId] != None:
+           devName = containerMap[cId]['devname']
+           vol     = containerMap[cId]['vol']
+           detachEBS(devName, vol)
+           deleteEBS(vol)
       del containerMap[cId]
     else:
      print ('Continer %s, not found' %(cId))
