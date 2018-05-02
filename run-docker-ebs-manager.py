@@ -56,8 +56,9 @@ def dropFromInventory(cId):
       if containerMap[cId] != None:
            devName = containerMap[cId]['devname']
            vol     = containerMap[cId]['vol']
-           detachEBS(devName, vol)
-           deleteEBS(vol)
+           if 'scratch' not in vol:
+              detachEBS(devName, vol)
+              deleteEBS(vol)
       del containerMap[cId]
     else:
      print ('Continer %s, not found' %(cId))
@@ -82,7 +83,7 @@ def mountEBS_on_container(devName, cId):
 def main():
     """
     Loops, waiting for containers to appear.
-    Once they are running, checks to see if that have /TOTAL_SIZE request.
+    Once they are running, checks to see if it has a file /TOTAL_SIZE request.
     Makes an EBS drive from that request, and mounts it on corresponding container.
     """
 
