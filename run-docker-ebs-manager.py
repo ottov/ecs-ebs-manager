@@ -56,7 +56,7 @@ def dropFromInventory(cId):
       if containerMap[cId] != None:
            devName = containerMap[cId]['devname']
            vol     = containerMap[cId]['vol']
-           if 'scratch' not in vol:
+           if vol != None and 'scratch' not in vol:
               detachEBS(devName, vol)
               deleteEBS(vol)
       del containerMap[cId]
