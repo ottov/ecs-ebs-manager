@@ -123,14 +123,15 @@ def attachEBS(devName, vol):
             VolumeId = vol,
             Device = devName,
         )
+
     time.sleep(1)
 
     res = ec2client.describe_volumes(
-            VolumeIds=[ vol ]
-            )
+        VolumeIds=[ vol ]
+        )
 
     # wait until attached
-    while res['Volumes'][0]['Attachments'][0]['State'] != 'attached':
+    while len(res['Volumes'][0]['Attachments']) < 1:
         time.sleep(1)
         res = ec2client.describe_volumes(
             VolumeIds=[ vol ]
