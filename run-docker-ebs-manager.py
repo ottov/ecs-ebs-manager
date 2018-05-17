@@ -114,6 +114,9 @@ def main():
                attachEBS(devName, vol)
 
                print('mounting %s' % devName)
+               while not os.path.exists(devName):
+                  time.sleep(1)
+
                check_output('sudo mkfs.ext4 %s' % (devName), shell=True)
 
                mountEBS_on_container(devName, c.short_id)
@@ -136,12 +139,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
-
-
-
-
-
-
-
