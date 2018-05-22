@@ -39,7 +39,12 @@ def buildInventory():
 
         if not container.id in containerMap:
             containerMap[container.id] = None
-            cOut = container.exec_run(cmd=['sh','-c', 'df -h /scratch | tail -1 | cut -d" " -f1']).output
+
+            try:
+               cOut = container.exec_run(cmd=['sh','-c', 'df -h /scratch | tail -1 | cut -d" " -f1']).output
+            except docker.errors.APIError:
+               continue
+
             devName = str.rstrip(cOut)
             if not 'docker' in devName:
                 containerMap[container.id] = { 'devname': devName,
@@ -58,10 +63,12 @@ def dropFromInventory(cId):
            vol     = containerMap[cId]['vol']
            if vol != None and 'scratch' not in vol:
               detachEBS(devName, vol)
+              time.sleep(1)
               deleteEBS(vol)
+
       del containerMap[cId]
     else:
-     print ('Continer %s, not found' %(cId))
+     print ('Container %s, not found' %(cId))
 
 def mountEBS_on_container(devName, cId):
     """
