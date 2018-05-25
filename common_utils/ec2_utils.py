@@ -1,7 +1,7 @@
  #!/usr/bin/env python
 from __future__ import print_function
 
-import boto3
+import boto3, botocore.exceptions
 import time
 import requests
 from requests.adapters import HTTPAdapter
@@ -179,6 +179,10 @@ def detachEBS(devName, vol):
 
 def deleteEBS(vol):
     print("Deleting " + vol)
-    ec2client.delete_volume(
-        VolumeId = vol
-    )
+    try:
+      ec2client.delete_volume(
+          VolumeId = vol
+      )
+    except Exception as e:
+      print(e.__doc__)
+      print(e.message)
