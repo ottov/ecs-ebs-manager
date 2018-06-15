@@ -107,7 +107,7 @@ def main():
                if cmd.exit_code != 0: continue
 
                sz = str.rstrip(cmd.output)                 # expecting bytes
-               volSz = int(round( (int(sz) + 0.0) / 1024**3) )  # converted to GB for EBS sizing
+               volSz = int(round( (int(float(sz)) + 0.0) / 1024**3) )  # converted to GB for EBS sizing
                volSz += int(volSz * 0.10)                       # +10% !
 
                # check if /scratch already mounted
