@@ -55,6 +55,7 @@ def buildInventory():
 def dropFromInventory(cId):
     """
     Removes container from global tracking dict
+    :param cId: container id
     """
     if cId in containerMap:
       print ('Removing container %s from inventory' % (cId))
@@ -82,6 +83,7 @@ def mountEBS_on_container(devName, cId):
 
     container = dClient.containers.get(cId)
 
+    print("running root commands on privileged container")
     container.exec_run(cmd='mknod %s b %s %s ' % (devName, blkStr.split(':')[0], str.rstrip(blkStr.split(':')[1])) )
     container.exec_run(cmd='mkdir -p %s' % (cPath))
     container.exec_run(cmd='mount %s %s' % (devName, cPath))

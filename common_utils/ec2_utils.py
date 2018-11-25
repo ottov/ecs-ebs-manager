@@ -159,12 +159,24 @@ def attachEBS(devName, vol):
 def detachEBS(devName, vol):
     print ("Detaching " + devName)
     iid = getEC2_InstanceId()
-    ec2client.detach_volume(
-        Device = devName,
-        Force = False,
-        InstanceId=iid,
-        VolumeId=vol
-    )
+
+    try:
+      ec2client.detach_volume(
+          Device = devName,
+          Force = False,
+          InstanceId=iid,
+          VolumeId=vol
+      )
+    except botocore.exceptions.ClientError as e:
+      # already detached?
+      print("botocore.exceptions.ClientError")
+      print(e.__doc__)
+      print(e.message)
+      return
+    except:
+      print(e.__doc__)
+      print(e.message)
+      return
 
     res = ec2client.describe_volumes(
             VolumeIds=[ vol ]
