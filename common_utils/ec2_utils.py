@@ -165,13 +165,13 @@ def attachEBS(devName, vol):
     return 0
 
 def detachEBS(devName, vol):
-    print ("Detaching " + devName)
+    print ("Detaching {} {}".format(devName,vol))
     iid = getEC2_InstanceId()
 
     try:
       ec2client.detach_volume(
           Device = devName,
-          Force = False,
+          Force = True,
           InstanceId=iid,
           VolumeId=vol
       )
@@ -191,11 +191,14 @@ def detachEBS(devName, vol):
             )
 
     # Check ready Volume
+    ct = 0
     while res['Volumes'][0]['State'] != 'available':
         time.sleep(1)
         res = ec2client.describe_volumes(
             VolumeIds=[ vol ]
             )
+        ct += 1
+        if ct > 60: break
 
 def deleteEBS(vol):
     print("Deleting " + vol)

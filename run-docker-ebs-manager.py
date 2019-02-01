@@ -156,7 +156,7 @@ def main():
                vol = createEBS(volSz)
 
                devName = generateDeviceName()
-               while devName != None:
+               while devName == None:
                     remove_orphaned_mounts()
                     devName = generateDeviceName()
 
