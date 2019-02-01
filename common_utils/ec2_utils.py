@@ -7,7 +7,15 @@ import requests
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 
-ec2client = boto3.client('ec2') #,region_name='us-east-1') # Set AWS_DEFAULT_REGION in env
+from botocore.config import Config
+
+config = Config(
+    retries = dict(
+        max_attempts = 60
+    )
+)
+
+ec2client = boto3.client('ec2',config=config) #,region_name='us-east-1') # Set AWS_DEFAULT_REGION in env
 
 VOLUME_TYPE = 'gp2'
 
@@ -191,6 +199,19 @@ def detachEBS(devName, vol):
 
 def deleteEBS(vol):
     print("Deleting " + vol)
+
+    res = ec2client.describe_volumes(
+            VolumeIds=[ vol ]
+            )
+
+    # Check ready Volume
+    while res['Volumes'][0]['State'] != 'available':
+        time.sleep(1)
+        print("Waiting to delete when vol is ready")
+        res = ec2client.describe_volumes(
+            VolumeIds=[ vol ]
+            )
+
     try:
       ec2client.delete_volume(
           VolumeId = vol

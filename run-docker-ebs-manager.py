@@ -28,6 +28,41 @@ def generateDeviceName():
             except:
                 return devName
 
+def remove_orphaned_mounts():
+    active_dev_list = set()
+
+    # Gather list of mounted devices inside containers
+    for container in dClient.containers.list():
+        if container.name == 'ecs-agent': continue
+
+        try:
+           cOut = container.exec_run(cmd=['sh','-c', 'df -h /scratch | tail -1 | cut -d" " -f1']).output
+        except docker.errors.APIError:
+           continue
+
+        devName = str.rstrip(cOut)
+        active_dev_list.add(devName)
+
+    # for each possible attachment dev letter, detach/delete EBS if it
+    # isn't in active_dev_list
+    for d1 in reversed(ascii_lowercase[0:3]):
+        for d2 in reversed(ascii_lowercase):
+            try:
+                devName = '/dev/xvd%s%s' % (d1,d2)
+                f = os.stat(devName)
+                if devName not in active_dev_list:
+                   # found orphan
+                   vol = getEBS_volId(devName)
+                   if vol == None: continue
+
+                   detachEBS(devName, vol)
+                   time.sleep(1)
+                   deleteEBS(vol)
+
+            except:
+                pass
+
+
 
 def buildInventory():
     """
@@ -119,7 +154,12 @@ def main():
 
                print('Creating, attaching EBS %s GB' % volSz)
                vol = createEBS(volSz)
+
                devName = generateDeviceName()
+               while devName != None:
+                    remove_orphaned_mounts()
+                    devName = generateDeviceName()
+
                attachEBS(devName, vol)
 
                print('mounting %s' % devName)
