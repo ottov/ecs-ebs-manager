@@ -194,6 +194,7 @@ def detachEBS(devName, vol):
     ct = 0
     while res['Volumes'][0]['State'] != 'available':
         time.sleep(1)
+        print("vol {} in state: {}".format(vol, res['Volumes'][0]['State']))
         res = ec2client.describe_volumes(
             VolumeIds=[ vol ]
             )
@@ -212,6 +213,7 @@ def deleteEBS(vol):
     while res['Volumes'][0]['State'] != 'available':
         time.sleep(1)
         print("Waiting to delete when vol is ready")
+        print("vol {} in state: {}".format(vol, res['Volumes'][0]['State']))
         res = ec2client.describe_volumes(
             VolumeIds=[ vol ]
             )
