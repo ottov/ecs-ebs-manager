@@ -170,16 +170,19 @@ def main():
 
                mountEBS_on_container(devName, c.short_id)
                containerMap[cItem] = { 'devname': devName, 'vol': vol }
-               time.sleep(3)
+               time.sleep(2)
 
             except (docker.errors.NotFound, docker.errors.APIError):
                print("docker not found. must delete.")
                dropFromInventory(cItem)
                continue
+            except (socket.timeout):
+               print("**socket timeout**")
+               continue
 
         #print('No work. Sleeping')
         try:
-          time.sleep(10)
+          time.sleep(5)
         except KeyboardInterrupt:
           sys.exit(0)
         except:
