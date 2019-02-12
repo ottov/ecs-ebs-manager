@@ -36,7 +36,7 @@ def remove_orphaned_mounts():
         if container.name == 'ecs-agent': continue
 
         try:
-           cOut = container.exec_run(cmd=['sh','-c', 'df -h /scratch | tail -1 | cut -d" " -f1']).output
+           cOut = container.exec_run(cmd=['sh','-c', 'grep -m1 -w /scratch /proc/mounts | cut -d" " -f1']).output
         except docker.errors.APIError:
            continue
 
@@ -76,7 +76,7 @@ def buildInventory():
             containerMap[container.id] = None
 
             try:
-               cOut = container.exec_run(cmd=['sh','-c', 'df -h /scratch | tail -1 | cut -d" " -f1']).output
+               cOut = container.exec_run(cmd=['sh','-c', 'grep -m1 -w /scratch /proc/mounts | cut -d" " -f1']).output
             except docker.errors.APIError:
                continue
 
