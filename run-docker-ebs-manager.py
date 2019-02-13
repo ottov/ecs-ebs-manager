@@ -5,6 +5,7 @@ import os
 import sys
 import time
 import docker
+import socket
 
 from subprocess import check_output
 from string import ascii_lowercase
