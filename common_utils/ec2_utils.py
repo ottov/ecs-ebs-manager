@@ -78,6 +78,8 @@ def createEBS(sz=42):
     return res['VolumeId']
 
 def getEBS_volId(devName):
+    if not devName.startswith('/dev'): return None
+
     iid = getEC2_InstanceId()
     res = ec2client.describe_volumes(
              Filters=[

@@ -79,6 +79,10 @@ def buildInventory():
             try:
                cOut = container.exec_run(cmd=['sh','-c', 'grep -m1 -w /scratch /proc/mounts | cut -d" " -f1']).output
             except docker.errors.APIError:
+               print("Caught exception:APIError")
+               continue
+            except socket.timeout:
+               print("Caught exception: socket.timeout")
                continue
 
             devName = str.rstrip(cOut)
@@ -174,7 +178,7 @@ def main():
                time.sleep(2)
 
             except (docker.errors.NotFound, docker.errors.APIError):
-               print("docker not found. must delete.")
+               print("Caught exception: docker not found, must delete.")
                dropFromInventory(cItem)
                continue
             except (socket.timeout):
