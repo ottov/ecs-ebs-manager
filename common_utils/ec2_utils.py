@@ -106,6 +106,8 @@ def getInstanceTags():
         for i in res['Tags']:
            if i['Key'] in ['Name', 'aws:ec2spot:fleet-request-id']:
               continue
+           if i['Key'].startswith('aws:'):
+              continue
            savedTags.append({'Key':i['Key'],'Value':i['Value']})
         return savedTags
     else:
