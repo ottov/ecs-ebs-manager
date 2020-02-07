@@ -83,13 +83,11 @@ def createEBS(sz=42):
       # already detached?
       logging.exception("Exception")
       print("botocore.exceptions.ClientError")
-      print(e.__name__)
       print(e.__doc__)
       print(e.message)
       return
     except:
       logging.exception("Caught exception")
-      print(e.__name__)
       print(e.__doc__)
       print(e.message)
       return
@@ -214,13 +212,11 @@ def detachEBS(devName, vol):
       # already detached?
       logging.exception("Exception")
       print("botocore.exceptions.ClientError")
-      print(e.__name__)
       print(e.__doc__)
       print(e.message)
       return 1
     except:
       logging.exception("Exception")
-      print(e.__name__)
       print(e.__doc__)
       print(e.message)
       return 1
@@ -267,7 +263,6 @@ def deleteEBS(vol):
       )
     except Exception as e:
       logging.exception("Caught exception")
-      print(e.__name__)
       print(e.__doc__)
       print(e.message)
 
