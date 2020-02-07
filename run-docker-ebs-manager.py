@@ -6,11 +6,13 @@ import sys
 import time
 import docker
 import socket
-
+import logging
 from subprocess import check_output
 from string import ascii_lowercase
 
 from common_utils.ec2_utils import *
+
+logging.basicConfig(filename='/tmp/manager.log', level=logging.ERROR)
 
 dClient = docker.from_env()
 
@@ -191,6 +193,7 @@ def main():
         except KeyboardInterrupt:
           sys.exit(0)
         except:
+          logging.exception("Caught exception")
           print("Unexpected error:", sys.exc_info()[0])
           raise
 

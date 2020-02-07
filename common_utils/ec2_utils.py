@@ -4,6 +4,7 @@ from __future__ import print_function
 import boto3, botocore.exceptions
 import time
 import requests
+import logging
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 
@@ -18,8 +19,13 @@ config = Config(
 ec2client = boto3.client('ec2',config=config) #,region_name='us-east-1') # Set AWS_DEFAULT_REGION in env
 
 VOLUME_TYPE = 'gp2'
+IID = None
+ZONE = None
 
 def getEC2_Zone():
+    global ZONE
+    if ZONE is not None:
+        return ZONE
     s = requests.Session()
     retries = Retry(total=5,
                 backoff_factor=3,
@@ -31,9 +37,14 @@ def getEC2_Zone():
         return None
     if r.status_code == 504:
         return None
+
+    ZONE = r.text
     return r.text
 
 def getEC2_InstanceId():
+    global IID
+    if IID is not None:
+        return IID
     s = requests.Session()
     retries = Retry(total=5,
                 backoff_factor=3,
@@ -45,6 +56,8 @@ def getEC2_InstanceId():
         return None
     if r.status_code == 504:
         return None
+
+    IID = r.text
     return r.text
 
 
@@ -58,11 +71,29 @@ def createEBS(sz=42):
 
     if sz > 16384: sz = 16384
     if sz < 1: sz = 1
-    res = ec2client.create_volume(
+
+    try:
+      res = ec2client.create_volume(
             AvailabilityZone = az,
-            Encrypted = False,
+            Encrypted = True,
             VolumeType = VOLUME_TYPE,
             Size = sz) # In GB, max 16384 for gp2
+
+    except botocore.exceptions.ClientError as e:
+      # already detached?
+      logging.exception("Exception")
+      print("botocore.exceptions.ClientError")
+      print(e.__name__)
+      print(e.__doc__)
+      print(e.message)
+      return
+    except:
+      logging.exception("Caught exception")
+      print(e.__name__)
+      print(e.__doc__)
+      print(e.message)
+      return
+
 
     # Inherit host's tags
     tags = getInstanceTags()
@@ -181,14 +212,18 @@ def detachEBS(devName, vol):
       )
     except botocore.exceptions.ClientError as e:
       # already detached?
+      logging.exception("Exception")
       print("botocore.exceptions.ClientError")
+      print(e.__name__)
       print(e.__doc__)
       print(e.message)
-      return
+      return 1
     except:
+      logging.exception("Exception")
+      print(e.__name__)
       print(e.__doc__)
       print(e.message)
-      return
+      return 1
 
     res = ec2client.describe_volumes(
             VolumeIds=[ vol ]
@@ -198,12 +233,14 @@ def detachEBS(devName, vol):
     ct = 0
     while res['Volumes'][0]['State'] != 'available':
         time.sleep(2)
-        print("vol {} in state: {}".format(vol, res['Volumes'][0]['State']))
+        print("check detach vol {} in state: {}".format(vol, res['Volumes'][0]['State']))
         res = ec2client.describe_volumes(
             VolumeIds=[ vol ]
             )
         ct += 1
         if ct > 30: break
+
+    return 0
 
 def deleteEBS(vol):
     print("Deleting " + vol)
@@ -217,17 +254,20 @@ def deleteEBS(vol):
     while res['Volumes'][0]['State'] != 'available':
         time.sleep(2)
         print("Waiting to delete when vol is ready")
-        print("vol {} in state: {}".format(vol, res['Volumes'][0]['State']))
+        print("check delete vol {} in state: {}".format(vol, res['Volumes'][0]['State']))
         res = ec2client.describe_volumes(
             VolumeIds=[ vol ]
             )
         ct += 1
-        if ct > 100: break
+        if ct > 30: break
 
     try:
       ec2client.delete_volume(
           VolumeId = vol
       )
     except Exception as e:
+      logging.exception("Caught exception")
+      print(e.__name__)
       print(e.__doc__)
       print(e.message)
+
