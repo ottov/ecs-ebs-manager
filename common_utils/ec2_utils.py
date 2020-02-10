@@ -118,6 +118,7 @@ def createEBS(sz=42):
       print(e.message)
       return
 
+    return res['VolumeId']
 
 
 def getEBS_volId(devName):

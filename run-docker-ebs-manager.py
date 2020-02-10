@@ -61,16 +61,16 @@ def remove_orphaned_mounts():
                    detachEBS(devName, vol)
 
 
-                   d = 1
+                   d = 0
                    d_ct = 0
-                   while d==1 and d_ct < 10:
-                 d = detachEBS(devName, vol)
-                 d_ct += 1
-                 if d_ct > 1:
-                    print ("re-try detach")
+                   while d==0 and d_ct < 10:
+                      d = detachEBS(devName, vol)
+                      d_ct += 1
+                      if d_ct > 1:
+                         print ("re-try detach")
 
-              time.sleep(1)
-              deleteEBS(vol)
+                   time.sleep(1)
+                   deleteEBS(vol)
 
                    time.sleep(1)
                    deleteEBS(vol)
