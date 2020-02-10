@@ -72,8 +72,6 @@ def remove_orphaned_mounts():
                    time.sleep(1)
                    deleteEBS(vol)
 
-                   time.sleep(1)
-                   deleteEBS(vol)
 
             except:
                 pass
@@ -129,8 +127,6 @@ def dropFromInventory(cId):
               time.sleep(1)
               deleteEBS(vol)
 
-              time.sleep(1)
-              deleteEBS(vol)
 
       del containerMap[cId]
     else:
