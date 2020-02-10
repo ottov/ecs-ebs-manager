@@ -181,12 +181,12 @@ def main():
                print('Creating, attaching EBS %s GB' % volSz)
                vol = None
                v_ct = 0
-               while vol == None and v_ct < 10:
+               while vol == None and v_ct < 60:
                   vol = createEBS(volSz)
                   v_ct += 1
                   if v_ct > 1:
                     print("re-try create")
-                    time.sleep(1)
+                    time.sleep(2)
 
 
                devName = generateDeviceName()
