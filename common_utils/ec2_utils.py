@@ -299,9 +299,22 @@ def detachEBS(devName, vol):
 def deleteEBS(vol):
     print("Deleting " + vol)
 
-    res = ec2client.describe_volumes(
-            VolumeIds=[ vol ]
-            )
+    try:
+        res = ec2client.describe_volumes(
+                VolumeIds=[ vol ]
+              )
+    except botocore.exceptions.ClientError as e:
+      logging.warn("Exception")
+      print("botocore.exceptions.ClientError")
+      print(e.__doc__)
+      print(e.message)
+      return
+    except:
+      logging.exception("Exception")
+      print(e.__doc__)
+      print(e.message)
+      return
+
 
     # Check ready Volume
     ct = 0
