@@ -252,10 +252,10 @@ def modifyAttr(iid, devName, vol):
 
 
 def detachEBS(devName, vol):
-"""
+   """
 
- return 1 for success 0 for failure
-"""
+    return 1 for success 0 for failure
+    """
     print ("Detaching {} {}".format(devName,vol))
     iid = getEC2_InstanceId()
 
