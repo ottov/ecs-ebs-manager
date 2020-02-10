@@ -12,7 +12,7 @@ from botocore.config import Config
 
 config = Config(
     retries = dict(
-        max_attempts = 60
+        max_attempts = 6
     )
 )
 
@@ -80,9 +80,8 @@ def createEBS(sz=42):
             Size = sz) # In GB, max 16384 for gp2
 
     except botocore.exceptions.ClientError as e:
-      # already detached?
       logging.exception("Exception")
-      print("botocore.exceptions.ClientError")
+      print("[createEBS] botocore.exceptions.ClientError")
       print(e.__doc__)
       print(e.message)
       return
@@ -96,15 +95,30 @@ def createEBS(sz=42):
     # Inherit host's tags
     tags = getInstanceTags()
 
-    if len(tags) > 0:
+    if len(tags) == 0:
+        return res['VolumeId']
+
+    try:
         ec2client.create_tags(
             Resources=[
                 res['VolumeId'],
             ],
             Tags=tags
         )
+    except botocore.exceptions.ClientError as e:
+        ec2client.create_tags(
+            Resources=[
+                res['VolumeId'],
+            ],
+            Tags=tags
+        )
+    except:
+      logging.exception("Caught exception")
+      print(e.__doc__)
+      print(e.message)
+      return
 
-    return res['VolumeId']
+
 
 def getEBS_volId(devName):
     if not devName.startswith('/dev'): return None
@@ -158,12 +172,24 @@ def attachEBS(devName, vol):
             VolumeIds=[ vol ]
             )
 
+    try:
 
-    res = ec2client.attach_volume(
+      res = ec2client.attach_volume(
             InstanceId = iid,
             VolumeId = vol,
             Device = devName,
-        )
+          )
+    except botocore.exceptions.ClientError as e:
+      logging.exception("Exception")
+      print("[attach] botocore.exceptions.ClientError")
+      print(e.__doc__)
+      print(e.message)
+      return
+    except:
+      logging.exception("Caught exception")
+      print(e.__doc__)
+      print(e.message)
+      return
 
     time.sleep(1)
 
@@ -178,18 +204,16 @@ def attachEBS(devName, vol):
             VolumeIds=[ vol ]
             )
 
-    ec2client.modify_instance_attribute(
-        InstanceId = iid,
-        BlockDeviceMappings=[
-            {
-                'DeviceName': devName,
-                'Ebs': {
-                    'VolumeId': vol,
-                    'DeleteOnTermination': True,
-                }
-            },
-        ]
-    )
+    m = 0
+    m_ct = 0
+    while m == 0 and m_ct<10:
+      m = modifyAttr(iid, devName, vol)
+      m_ct += 1
+      if m_ct > 1:
+        time.sleep(1)
+        print("re-try modify attr")
+      elif m_ct > 10:
+        break
 
 
     if res['Volumes'][0]['Attachments'][0]['State'] == 'attached':
@@ -197,7 +221,40 @@ def attachEBS(devName, vol):
 
     return 0
 
+def modifyAttr(iid, devName, vol):
+    try:
+       ec2client.modify_instance_attribute(
+          InstanceId = iid,
+          BlockDeviceMappings=[
+             {
+                'DeviceName': devName,
+                'Ebs': {
+                    'VolumeId': vol,
+                    'DeleteOnTermination': True,
+                }
+             },
+          ]
+       )
+    except botocore.exceptions.ClientError as e:
+      logging.exception("Exception")
+      print("botocore.exceptions.ClientError")
+      print(e.__doc__)
+      print(e.message)
+      return 0
+    except:
+      logging.exception("Exception")
+      print(e.__doc__)
+      print(e.message)
+      return 0
+
+    return 1
+
+
 def detachEBS(devName, vol):
+"""
+
+ return 1 for success 0 for failure
+"""
     print ("Detaching {} {}".format(devName,vol))
     iid = getEC2_InstanceId()
 
@@ -214,12 +271,12 @@ def detachEBS(devName, vol):
       print("botocore.exceptions.ClientError")
       print(e.__doc__)
       print(e.message)
-      return 1
+      return 0
     except:
       logging.exception("Exception")
       print(e.__doc__)
       print(e.message)
-      return 1
+      return 0
 
     res = ec2client.describe_volumes(
             VolumeIds=[ vol ]
@@ -234,9 +291,9 @@ def detachEBS(devName, vol):
             VolumeIds=[ vol ]
             )
         ct += 1
-        if ct > 30: break
+        if ct > 10: break
 
-    return 0
+    return 1
 
 def deleteEBS(vol):
     print("Deleting " + vol)
@@ -255,14 +312,15 @@ def deleteEBS(vol):
             VolumeIds=[ vol ]
             )
         ct += 1
-        if ct > 30: break
+        if ct > 10: break
 
     try:
       ec2client.delete_volume(
           VolumeId = vol
       )
     except Exception as e:
-      logging.exception("Caught exception")
+      logging.warn("Caught exception")
       print(e.__doc__)
       print(e.message)
+      pass
 

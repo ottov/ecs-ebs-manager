@@ -59,6 +59,19 @@ def remove_orphaned_mounts():
                    if vol == None: continue
 
                    detachEBS(devName, vol)
+
+
+                   d = 1
+                   d_ct = 0
+                   while d==1 and d_ct < 10:
+                 d = detachEBS(devName, vol)
+                 d_ct += 1
+                 if d_ct > 1:
+                    print ("re-try detach")
+
+              time.sleep(1)
+              deleteEBS(vol)
+
                    time.sleep(1)
                    deleteEBS(vol)
 
@@ -105,7 +118,17 @@ def dropFromInventory(cId):
            devName = containerMap[cId]['devname']
            vol     = containerMap[cId]['vol']
            if vol != None and 'scratch' not in vol:
-              detachEBS(devName, vol)
+              d = 0
+              d_ct = 0
+              while d==0 and d_ct < 10:
+                 d = detachEBS(devName, vol)
+                 d_ct += 1
+                 if d_ct > 1:
+                    print ("re-try detach")
+
+              time.sleep(1)
+              deleteEBS(vol)
+
               time.sleep(1)
               deleteEBS(vol)
 
@@ -160,14 +183,29 @@ def main():
                if 'scratch' in cMounts: continue # already mounted
 
                print('Creating, attaching EBS %s GB' % volSz)
-               vol = createEBS(volSz)
+               vol = None
+               v_ct = 0
+               while vol == None and v_ct < 10:
+                  vol = createEBS(volSz)
+                  v_ct += 1
+                  if v_ct > 1:
+                    print("re-try create")
+                    time.sleep(1)
+
 
                devName = generateDeviceName()
                while devName == None:
                     remove_orphaned_mounts()
                     devName = generateDeviceName()
 
-               attachEBS(devName, vol)
+               res = None
+               a_ct = 0
+               while res == None and a_ct < 30:
+                  res = attachEBS(devName, vol)
+                  a_ct += 1
+                  if a_ct > 1:
+                    print("re-try attach")
+                    time.sleep(1)
 
                print('mounting %s' % devName)
                while not os.path.exists(devName):
