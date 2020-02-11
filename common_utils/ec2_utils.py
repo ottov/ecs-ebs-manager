@@ -222,7 +222,7 @@ def attachEBS(devName, vol):
           logging.exception("Caught exception")
           print(e.__doc__)
           print(e.message)
-         return
+          return
 
         d_ct += 1
 
