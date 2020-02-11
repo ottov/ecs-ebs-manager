@@ -98,27 +98,34 @@ def createEBS(sz=42):
     if len(tags) == 0:
         return res['VolumeId']
 
+    c_ct=0
+    c = 0
+    while c == 0 and c_ct < 10:
+       c = createTags(res['VolumeId'], tags)
+       c_ct += 1
+       if c_ct > 1:
+         print("re-try create_tags")
+         time.sleep(1)
+
+    return res['VolumeId']
+
+def createTags(vol, tags):
     try:
         ec2client.create_tags(
             Resources=[
-                res['VolumeId'],
+                vol,
             ],
             Tags=tags
         )
     except botocore.exceptions.ClientError as e:
-        ec2client.create_tags(
-            Resources=[
-                res['VolumeId'],
-            ],
-            Tags=tags
-        )
+      return 0
     except:
       logging.exception("Caught exception")
       print(e.__doc__)
       print(e.message)
-      return
+      return 0
 
-    return res['VolumeId']
+    return 1
 
 
 def getEBS_volId(devName):
@@ -174,7 +181,6 @@ def attachEBS(devName, vol):
             )
 
     try:
-
       res = ec2client.attach_volume(
             InstanceId = iid,
             VolumeId = vol,
@@ -199,11 +205,26 @@ def attachEBS(devName, vol):
         )
 
     # wait until attached
-    while len(res['Volumes'][0]['Attachments']) < 1:
+    d_ct = 0
+    while len(res['Volumes'][0]['Attachments']) < 1 and d_ct < 30:
         time.sleep(1)
-        res = ec2client.describe_volumes(
-            VolumeIds=[ vol ]
-            )
+        try:
+           res = ec2client.describe_volumes(
+               VolumeIds=[ vol ]
+               )
+        except botocore.exceptions.ClientError as e:
+          logging.exception("Exception")
+          print("[attach] desc, botocore.exceptions.ClientError")
+          print(e.__doc__)
+          print(e.message)
+          return
+        except:
+          logging.exception("Caught exception")
+          print(e.__doc__)
+          print(e.message)
+         return
+
+        d_ct += 1
 
     m = 0
     m_ct = 0
@@ -213,8 +234,6 @@ def attachEBS(devName, vol):
       if m_ct > 1:
         time.sleep(1)
         print("re-try modify attr")
-      elif m_ct > 10:
-        break
 
 
     if res['Volumes'][0]['Attachments'][0]['State'] == 'attached':
@@ -333,8 +352,7 @@ def deleteEBS(vol):
           VolumeId = vol
       )
     except Exception as e:
-      logging.warn("Caught exception")
+      logging.warn("[deleteEBS] Caught exception")
       print(e.__doc__)
       print(e.message)
       pass
-

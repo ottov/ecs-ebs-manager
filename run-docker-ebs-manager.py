@@ -187,6 +187,8 @@ def main():
                   if v_ct > 1:
                     print("re-try create")
                     time.sleep(2)
+                  if v_ct > 57:
+                    remove_orphaned_mounts()
 
 
                devName = generateDeviceName()
@@ -202,6 +204,9 @@ def main():
                   if a_ct > 1:
                     print("re-try attach")
                     time.sleep(1)
+                  if a_ct > 27:
+                    remove_orphaned_mounts()
+
 
                print('mounting %s' % devName)
                while not os.path.exists(devName):
