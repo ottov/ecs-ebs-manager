@@ -206,8 +206,8 @@ def attachEBS(devName, vol):
 
     # wait until attached
     d_ct = 0
-    while len(res['Volumes'][0]['Attachments']) < 1 and d_ct < 30:
-        time.sleep(1)
+    while len(res['Volumes'][0]['Attachments']) < 1 and d_ct < 18:
+        time.sleep(10)
         try:
            res = ec2client.describe_volumes(
                VolumeIds=[ vol ]
@@ -225,6 +225,7 @@ def attachEBS(devName, vol):
           return
 
         d_ct += 1
+        print("waiting EBS attachment %s: %d" % (vol,d_ct))
 
     m = 0
     m_ct = 0
