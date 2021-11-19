@@ -186,7 +186,7 @@ def main():
                   v_ct += 1
                   if v_ct > 1:
                     print("re-try create")
-                    time.sleep(2)
+                    time.sleep(2 + v_ct)
                   if v_ct > 57:
                     remove_orphaned_mounts()
 
@@ -203,7 +203,7 @@ def main():
                   a_ct += 1
                   if a_ct > 1:
                     print("re-try attach")
-                    time.sleep(1)
+                    time.sleep(1 + a_ct)
                   if a_ct > 27:
                     remove_orphaned_mounts()
 
