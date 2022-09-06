@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 from __future__ import print_function
 
 import os
@@ -39,7 +39,7 @@ def remove_orphaned_mounts():
         if container.name == 'ecs-agent': continue
 
         try:
-           cOut = container.exec_run(cmd=['sh','-c', 'grep -m1 -w /scratch /proc/mounts | cut -d" " -f1']).output
+           cOut = container.exec_run(cmd=['sh','-c', 'grep -m1 -w /scratch /proc/mounts | cut -d" " -f1']).output.decode('ascii')
         except docker.errors.APIError:
            continue
 
@@ -90,7 +90,7 @@ def buildInventory():
             containerMap[container.id] = None
 
             try:
-               cOut = container.exec_run(cmd=['sh','-c', 'grep -m1 -w /scratch /proc/mounts | cut -d" " -f1']).output
+               cOut = container.exec_run(cmd=['sh','-c', 'grep -m1 -w /scratch /proc/mounts | cut -d" " -f1']).output.decode('ascii')
             except docker.errors.APIError:
                print("Caught exception:APIError")
                continue
@@ -169,12 +169,12 @@ def main():
                cmd = c.exec_run('cat /TOTAL_SIZE')
                if cmd.exit_code != 0: continue
 
-               sz = str.rstrip(cmd.output)                 # expecting bytes
+               sz = str.rstrip(cmd.output.decode('ascii'))             # expecting bytes
                volSz = int(round( (int(float(sz)) + 0.0) / 1024**3) )  # converted to GB for EBS sizing
                volSz += int(volSz * 0.10)                       # +10% !
 
                # check if /scratch already mounted
-               cMounts = c.exec_run('cat /proc/mounts').output
+               cMounts = c.exec_run('cat /proc/mounts').output.decode('ascii')
 
                if 'scratch' in cMounts: continue # already mounted
 
