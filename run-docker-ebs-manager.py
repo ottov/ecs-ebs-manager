@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-from __future__ import print_function
 
 import os
 import sys
@@ -147,7 +146,7 @@ def mountEBS_on_container(devName, cId):
     print("running root commands on privileged container")
     container.exec_run(cmd='mknod %s b %s %s ' % (devName, blkStr.split(':')[0], str.rstrip(blkStr.split(':')[1])) )
     container.exec_run(cmd='mkdir -p %s' % (cPath))
-    container.exec_run(cmd='mount %s %s' % (devName, cPath))
+    container.exec_run(cmd='mount -t ext4 %s %s' % (devName, cPath))
 
 
 def main():
