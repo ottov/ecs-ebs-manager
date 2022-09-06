@@ -138,13 +138,17 @@ def mountEBS_on_container(devName, cId):
     :param cId: container id
     """
     cPath = '/scratch'
-    blkStr = check_output('lsblk --noheadings --output MAJ:MIN %s' % (devName), shell=True)
+    blkStr = check_output('lsblk --noheadings --output MAJ:MIN %s' % (devName), shell=True).decode('ascii')
 
 
     container = dClient.containers.get(cId)
 
     print("running root commands on privileged container")
-    container.exec_run(cmd='mknod %s b %s %s ' % (devName, blkStr.split(':')[0], str.rstrip(blkStr.split(':')[1])) )
+
+    b1 = blkStr.split(':')[0]
+    b2 = str.rstrip(blkStr.split(':')[1])
+
+    container.exec_run(cmd='mknod %s b %s %s ' % (devName, b1, b2) )
     container.exec_run(cmd='mkdir -p %s' % (cPath))
     container.exec_run(cmd='mount -t ext4 %s %s' % (devName, cPath))
 
