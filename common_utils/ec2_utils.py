@@ -18,7 +18,7 @@ config = Config(
 
 ec2client = boto3.client('ec2',config=config) #,region_name='us-east-1') # Set AWS_DEFAULT_REGION in env
 
-VOLUME_TYPE = 'gp2'
+VOLUME_TYPE = 'gp3'
 IID = None
 ZONE = None
 
